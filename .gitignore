@@ -1,0 +1,42 @@
+# ==== Python / backend ====
+backend/.venv/
+**/.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.env
+*.env
+!*.env.example
+
+# ==== Android / Gradle ====
+android/.gradle/
+android/build/
+android/app/build/
+android/captures/
+android/.cxx/
+android/local.properties
+*.iml
+.externalNativeBuild/
+
+# Gradle wrapper: keep jar/properties (needed to build), ignore caches
+android/.kotlin/
+
+# ==== IDE / 도구 ====
+.idea/
+*.iws
+.vscode/
+.claude/
+
+# ==== APK / 서명 (민감) ====
+*.apk
+*.aab
+*.keystore
+*.jks
+keystore.properties
+
+# ==== OS ====
+.DS_Store
+Thumbs.db
+
+# ==== 로그/임시 ====
+*.log
