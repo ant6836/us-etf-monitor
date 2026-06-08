@@ -288,7 +288,8 @@ cd android
 
 ### 9.1 개발 환경 설치 (1회, 운영자 PC)
 - **Claude Code 설치**: 네이티브 설치 권장 — macOS/Linux `curl -fsSL https://claude.ai/install.sh | bash`, Windows(PowerShell) `irm https://claude.ai/install.ps1 | iex`. 네이티브 방식은 Node.js가 필요 없다. npm 방식(`npm install -g @anthropic-ai/claude-code`)을 쓰면 **Node.js 18 이상** 필요. 로그인에는 유료 Claude 구독(또는 API) 계정이 필요.
-- **Android Studio + JDK 설치**: APK 빌드에 필요(코드는 Claude Code가 쓰지만 빌드 도구는 PC에 있어야 함).
+- **Android Studio + JDK 설치**: APK 빌드에 필요(코드는 Claude Code가 쓰지만 빌드 도구는 PC에 있어야 함). 설치 후 첫 실행 마법사에서 SDK를 받는다(Standard).
+- **Windows 빌드 필수: Visual C++ 재배포 패키지(x64)**: 안드로이드 리소스 컴파일러(AAPT2)가 동작하려면 필요하다. 없으면 빌드가 `AAPT2 ... Daemon startup failed / Please check if you installed the Windows Universal C Runtime` 오류로 실패한다. https://aka.ms/vs/17/release/vc_redist.x64.exe 설치 후 PC 재시작.
 - 작업 폴더를 만들고 이 명세서를 넣은 뒤 `claude` 실행 → "이 명세서대로 Phase 1부터 구현해줘"로 시작.
 - **체크포인트**: `claude --version`, `node --version`(npm 방식 시), Android Studio 정상 실행 확인.
 
