@@ -3,8 +3,11 @@ package com.example.etfdrawdown.widget
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.DashPathEffect
+import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.Shader
+import androidx.core.graphics.ColorUtils
 
 /**
  * 1개월 종가 라인 차트를 비트맵으로 그린다.
@@ -54,15 +57,21 @@ object ChartRenderer {
         }
 
         // 라인 아래 영역 채움(라인보다 먼저 그려서 라인이 위에 보이게)
+        // 과거(왼쪽)일수록 살짝 어두운 가로 그라데이션 — 불투명 유지
         val bottom = pad + plotH
         val fillPath = Path(path).apply {
             lineTo(x(values.size - 1), bottom)
             lineTo(x(0), bottom)
             close()
         }
+        val oldFillColor = ColorUtils.blendARGB(fillColor, android.graphics.Color.BLACK, 0.25f)
         val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = fillColor
             style = Paint.Style.FILL
+            shader = LinearGradient(
+                pad, 0f, pad + plotW, 0f,
+                oldFillColor, fillColor,
+                Shader.TileMode.CLAMP,
+            )
         }
         canvas.drawPath(fillPath, fillPaint)
 
