@@ -42,7 +42,8 @@ class UpdateWorker(
             return Result.success()
         }
 
-        val outcome = withContext(Dispatchers.IO) { Repository.load() }
+        val watchlist = PrefsStore.loadWatchlist(ctx)
+        val outcome = withContext(Dispatchers.IO) { Repository.load(watchlist) }
 
         if (outcome.results.isEmpty()) {
             // 전체 실패: 기존 캐시를 그대로 표시하고 실패 상태 기록 후 재시도
@@ -51,10 +52,10 @@ class UpdateWorker(
             return Result.retry()
         }
 
-        // 부분 실패한 심볼은 기존 캐시 값으로 채워 표시 순서(INDICES)대로 병합
+        // 부분 실패한 심볼은 기존 캐시 값으로 채워 추적 목록 순서대로 병합
         val fresh = outcome.results.associateBy { it.symbol }
         val old = cached?.results?.associateBy { it.symbol } ?: emptyMap()
-        val merged = Repository.INDICES.mapNotNull { (symbol, _) ->
+        val merged = watchlist.mapNotNull { (symbol, _) ->
             fresh[symbol] ?: old[symbol]
         }
         PrefsStore.save(ctx, merged, System.currentTimeMillis())

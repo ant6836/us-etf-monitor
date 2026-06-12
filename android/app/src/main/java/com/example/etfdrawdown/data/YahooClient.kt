@@ -15,8 +15,12 @@ import java.net.URLEncoder
 object YahooClient {
 
     private const val BASE = "https://query1.finance.yahoo.com/v8/finance/chart/"
+    private const val SEARCH = "https://query1.finance.yahoo.com/v1/finance/search"
     private const val USER_AGENT = "Mozilla/5.0 (Linux; Android 14)"
     private const val TIMEOUT_MS = 10_000
+
+    /** 위젯에 추가하려면 3개월 응답에 유효한 일봉이 최소 이만큼 있어야 한다(^DJUSDIV 같은 이력 미제공 종목 차단). */
+    const val MIN_DAILY_BARS = 20
 
     /** 일봉 하나(epoch초, 고가, 종가). */
     data class Bar(val ts: Long, val high: Double, val close: Double)
@@ -46,6 +50,49 @@ object YahooClient {
             conn.disconnect()
         }
     }
+
+    /** 검색 결과 한 건. type 예: INDEX, ETF, EQUITY */
+    data class SearchItem(val symbol: String, val name: String, val type: String)
+
+    /**
+     * 야후 검색 API로 심볼/종목명을 검색한다.
+     * @throws Exception 네트워크/파싱 실패 시(호출부에서 처리)
+     */
+    fun search(query: String): List<SearchItem> {
+        val q = URLEncoder.encode(query, "UTF-8")
+        val url = URL("$SEARCH?q=$q&quotesCount=10&newsCount=0")
+        val conn = (url.openConnection() as HttpURLConnection).apply {
+            requestMethod = "GET"
+            setRequestProperty("User-Agent", USER_AGENT)
+            connectTimeout = TIMEOUT_MS
+            readTimeout = TIMEOUT_MS
+        }
+        try {
+            val code = conn.responseCode
+            if (code != 200) throw RuntimeException("야후 검색 응답 코드 $code")
+            val body = conn.inputStream.bufferedReader().use { it.readText() }
+            val quotes = JSONObject(body).optJSONArray("quotes") ?: return emptyList()
+            val items = ArrayList<SearchItem>(quotes.length())
+            for (i in 0 until quotes.length()) {
+                val o = quotes.getJSONObject(i)
+                val symbol = o.optString("symbol")
+                if (symbol.isEmpty()) continue
+                val name = o.optString("longname")
+                    .ifEmpty { o.optString("shortname") }
+                    .ifEmpty { symbol }
+                items.add(SearchItem(symbol, name, o.optString("quoteType")))
+            }
+            return items
+        } finally {
+            conn.disconnect()
+        }
+    }
+
+    /**
+     * 위젯에 쓸 수 있는 종목인지 검증: 3개월 일봉 수를 반환한다(실패 시 예외).
+     * MIN_DAILY_BARS 미만이면 과거 이력 미제공 종목(예: ^DJUSDIV)이다.
+     */
+    fun countDailyBars(symbol: String): Int = fetchChart(symbol).series.size
 
     private fun parse(body: String): Raw {
         val result = JSONObject(body)

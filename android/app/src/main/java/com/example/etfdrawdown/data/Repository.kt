@@ -6,8 +6,8 @@ package com.example.etfdrawdown.data
  */
 object Repository {
 
-    /** 추적 대상 지수: (심볼, 표시명). */
-    val INDICES: List<Pair<String, String>> = listOf(
+    /** 기본 추적 종목: (심볼, 표시명). 사용자가 목록을 바꾸지 않았을 때 사용. */
+    val DEFAULT_INDICES: List<Pair<String, String>> = listOf(
         "^NDX" to "Nasdaq 100",
         "^GSPC" to "S&P 500",
         // ^DJUSDIV(DJ 배당 100)는 야후가 과거 일봉을 제공하지 않아 제외(2026-06-12 확인)
@@ -20,14 +20,14 @@ object Repository {
     )
 
     /**
-     * 모든 지수의 낙폭을 계산해 반환한다.
-     * 지수별로 독립 처리하므로 한 지수가 실패해도 나머지는 살린다(예외를 던지지 않음).
+     * 주어진 추적 목록의 모든 종목 낙폭을 계산해 반환한다.
+     * 종목별로 독립 처리하므로 하나가 실패해도 나머지는 살린다(예외를 던지지 않음).
      */
-    fun load(): LoadOutcome {
+    fun load(indices: List<Pair<String, String>>): LoadOutcome {
         val nowSec = System.currentTimeMillis() / 1000
-        val results = ArrayList<IndexResult>(INDICES.size)
+        val results = ArrayList<IndexResult>(indices.size)
         val failed = ArrayList<String>()
-        for ((symbol, name) in INDICES) {
+        for ((symbol, name) in indices) {
             try {
                 val raw = YahooClient.fetchChart(symbol)
                 val periods = Drawdown.PERIOD_DAYS.mapValues { (_, days) ->

@@ -14,4 +14,10 @@
     <string name="main_howto">홈 화면을 길게 눌러 위젯 목록에서 \"ETF Drawdown\"을 추가하세요. 위젯은 30분마다 자동 갱신되며, 위젯의 새로고침 버튼으로 즉시 갱신할 수 있습니다.</string>
     <string name="main_refresh_now">지금 갱신</string>
     <string name="main_last">최근 데이터</string>
+    <string name="main_watchlist">추적 종목 (최대 4개 · 위젯에 표시)</string>
+    <string name="main_search">종목 검색 · 추가</string>
+    <string name="main_search_hint">티커 또는 이름 (예: QQQ, Apple)</string>
+    <string name="main_search_btn">검색</string>
+    <string name="main_add">추가</string>
+    <string name="main_remove">삭제</string>
 </resources>

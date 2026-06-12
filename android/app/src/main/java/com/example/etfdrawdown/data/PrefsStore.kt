@@ -14,6 +14,10 @@ object PrefsStore {
     private const val KEY_DATA = "data_json"
     private const val KEY_UPDATED = "updated_at_ms"
     private const val KEY_FAILED = "last_update_failed"
+    private const val KEY_WATCHLIST = "watchlist_json"
+
+    /** 위젯이 표시할 수 있는 최대 종목 수(레이아웃 슬롯 수와 일치). */
+    const val MAX_WATCHLIST = 4
 
     fun save(context: Context, results: List<IndexResult>, updatedAtMs: Long) {
         val arr = JSONArray()
@@ -58,6 +62,34 @@ object PrefsStore {
     fun lastFailed(context: Context): Boolean =
         context.getSharedPreferences(PREF, Context.MODE_PRIVATE)
             .getBoolean(KEY_FAILED, false)
+
+    /** 추적 종목 목록 (심볼, 표시명). 저장된 게 없으면 기본 지수 2개. */
+    fun loadWatchlist(context: Context): List<Pair<String, String>> {
+        val json = context.getSharedPreferences(PREF, Context.MODE_PRIVATE)
+            .getString(KEY_WATCHLIST, null) ?: return Repository.DEFAULT_INDICES
+        return try {
+            val arr = JSONArray(json)
+            val list = ArrayList<Pair<String, String>>(arr.length())
+            for (i in 0 until arr.length()) {
+                val o = arr.getJSONObject(i)
+                list.add(o.getString("symbol") to o.getString("name"))
+            }
+            list.take(MAX_WATCHLIST).ifEmpty { Repository.DEFAULT_INDICES }
+        } catch (e: Exception) {
+            Repository.DEFAULT_INDICES
+        }
+    }
+
+    fun saveWatchlist(context: Context, list: List<Pair<String, String>>) {
+        val arr = JSONArray()
+        for ((symbol, name) in list.take(MAX_WATCHLIST)) {
+            arr.put(JSONObject().put("symbol", symbol).put("name", name))
+        }
+        context.getSharedPreferences(PREF, Context.MODE_PRIVATE)
+            .edit()
+            .putString(KEY_WATCHLIST, arr.toString())
+            .apply()
+    }
 
     /** 캐시된 스냅샷을 반환한다. 없으면 null. */
     fun load(context: Context): Snapshot? {
