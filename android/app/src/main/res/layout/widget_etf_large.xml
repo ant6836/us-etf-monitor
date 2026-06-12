@@ -65,8 +65,9 @@
                 android:layout_height="wrap_content"
                 android:maxLines="1"
                 android:text="-"
-                android:textColor="@color/text_muted"
-                android:textSize="13sp" />
+                android:textColor="@color/text_primary"
+                android:textSize="13sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/slot1_price"
@@ -120,8 +121,9 @@
                 android:layout_height="wrap_content"
                 android:maxLines="1"
                 android:text="-"
-                android:textColor="@color/text_muted"
-                android:textSize="13sp" />
+                android:textColor="@color/text_primary"
+                android:textSize="13sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/slot2_price"
@@ -176,8 +178,9 @@
                 android:layout_height="wrap_content"
                 android:maxLines="1"
                 android:text="-"
-                android:textColor="@color/text_muted"
-                android:textSize="13sp" />
+                android:textColor="@color/text_primary"
+                android:textSize="13sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/slot3_price"
@@ -232,8 +235,9 @@
                 android:layout_height="wrap_content"
                 android:maxLines="1"
                 android:text="-"
-                android:textColor="@color/text_muted"
-                android:textSize="13sp" />
+                android:textColor="@color/text_primary"
+                android:textSize="13sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/slot4_price"

@@ -18,7 +18,7 @@ object ChartRenderer {
     /**
      * @param values 종가 시계열(시간 오름차순, 마지막 점 = 현재가)
      * @param periodHigh 기간 고점(점선 기준선으로 표시)
-     * @param fillColor 라인 아래 영역 채움색(불투명 — 호출부에서 배경과 혼합해 전달)
+     * @param highLabel 고점 가격 라벨(예: "30,664"). null이면 표시 안 함(차트가 낮을 때)
      */
     fun render(
         widthPx: Int,
@@ -27,8 +27,8 @@ object ChartRenderer {
         values: List<Double>,
         periodHigh: Double,
         lineColor: Int,
-        fillColor: Int,
         highLineColor: Int,
+        highLabel: String? = null,
     ): Bitmap {
         val w = widthPx.coerceAtLeast(1)
         val h = heightPx.coerceAtLeast(1)
@@ -37,8 +37,11 @@ object ChartRenderer {
 
         val canvas = Canvas(bmp)
         val pad = 4f * density
+        val labelSize = 9f * density
+        // 라벨이 있으면 고점선 위에 가격이 들어갈 상단 여백 확보
+        val padTop = if (highLabel != null) labelSize + 6f * density else pad
         val plotW = w - pad * 2
-        val plotH = h - pad * 2
+        val plotH = h - padTop - pad
 
         // 고점 기준선이 항상 보이도록 범위에 포함 + 위아래 5% 여유
         var max = maxOf(values.max(), periodHigh)
@@ -48,7 +51,7 @@ object ChartRenderer {
         min -= span * 0.05
 
         fun x(i: Int): Float = pad + plotW * i / (values.size - 1).toFloat()
-        fun y(v: Double): Float = pad + plotH * (1f - ((v - min) / (max - min)).toFloat())
+        fun y(v: Double): Float = padTop + plotH * (1f - ((v - min) / (max - min)).toFloat())
 
         // 종가 라인 경로
         val path = Path()
@@ -57,19 +60,19 @@ object ChartRenderer {
         }
 
         // 라인 아래 영역 채움(라인보다 먼저 그려서 라인이 위에 보이게)
-        // 과거(왼쪽)일수록 살짝 어두운 가로 그라데이션 — 불투명 유지
-        val bottom = pad + plotH
+        // 투명도 가로 그라데이션: 과거(왼쪽) 거의 투명 → 현재(오른쪽) 진하게
+        val bottom = padTop + plotH
         val fillPath = Path(path).apply {
             lineTo(x(values.size - 1), bottom)
             lineTo(x(0), bottom)
             close()
         }
-        val oldFillColor = ColorUtils.blendARGB(fillColor, android.graphics.Color.BLACK, 0.25f)
         val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.FILL
             shader = LinearGradient(
                 pad, 0f, pad + plotW, 0f,
-                oldFillColor, fillColor,
+                ColorUtils.setAlphaComponent(lineColor, 20), // 약 8%
+                ColorUtils.setAlphaComponent(lineColor, 205), // 약 80%
                 Shader.TileMode.CLAMP,
             )
         }
@@ -83,6 +86,16 @@ object ChartRenderer {
             pathEffect = DashPathEffect(floatArrayOf(4f * density, 4f * density), 0f)
         }
         canvas.drawLine(pad, y(periodHigh), pad + plotW, y(periodHigh), highPaint)
+
+        // 고점 가격 라벨(점선 위 우측 정렬)
+        if (highLabel != null) {
+            val labelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = highLineColor
+                textSize = labelSize
+                textAlign = Paint.Align.RIGHT
+            }
+            canvas.drawText(highLabel, pad + plotW, y(periodHigh) - 3f * density, labelPaint)
+        }
         val linePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = lineColor
             style = Paint.Style.STROKE

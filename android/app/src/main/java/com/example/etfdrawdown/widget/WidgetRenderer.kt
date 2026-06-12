@@ -9,7 +9,6 @@ import android.util.TypedValue
 import android.view.View
 import android.widget.RemoteViews
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.ColorUtils
 import com.example.etfdrawdown.R
 import com.example.etfdrawdown.data.IndexResult
 import com.example.etfdrawdown.data.MarketHours
@@ -118,7 +117,7 @@ object WidgetRenderer {
                 continue
             }
             views.setViewVisibility(BOX_IDS[i], View.VISIBLE)
-            bindIndex(context, views, index, i, compact)
+            bindIndex(context, views, index, i, compact, large)
             if (large) bindChart(context, views, index, CHART_IDS[i], widthDp, heightDp, results.size)
         }
         return views
@@ -143,17 +142,17 @@ object WidgetRenderer {
         val hPx = (chartHDp * density).toInt().coerceAtMost(600)
         // 낙폭 구간 색을 텍스트와 동일하게 라인·면에 적용
         val lineColor = dropColor(context, index.periods["1m"]?.dropRatio ?: 0.0)
-        val bg = ContextCompat.getColor(context, R.color.widget_bg)
-        val fillColor = ColorUtils.blendARGB(bg, lineColor, 0.35f) // 불투명(배경과 혼합한 옅은 톤)
+        val periodHigh = index.periods["1m"]?.periodHigh ?: index.closes1m.max()
         val bmp = ChartRenderer.render(
             widthPx = wPx,
             heightPx = hPx,
             density = density,
             values = index.closes1m,
-            periodHigh = index.periods["1m"]?.periodHigh ?: index.closes1m.max(),
+            periodHigh = periodHigh,
             lineColor = lineColor,
-            fillColor = fillColor,
             highLineColor = ContextCompat.getColor(context, R.color.text_muted),
+            // 차트가 너무 낮으면(4종목 등) 라벨 생략
+            highLabel = if (chartHDp >= 45) formatPrice(periodHigh) else null,
         )
         views.setImageViewBitmap(chartId, bmp)
     }
@@ -200,6 +199,7 @@ object WidgetRenderer {
         index: IndexResult,
         slot: Int,
         compact: Boolean,
+        large: Boolean,
     ) {
         views.setTextViewText(NAME_IDS[slot], index.name)
         views.setTextViewText(PRICE_IDS[slot], formatPrice(index.currentPrice))
@@ -209,8 +209,8 @@ object WidgetRenderer {
         views.setTextViewText(DROP_IDS[slot], formatDrop(m1))
         views.setTextColor(DROP_IDS[slot], dropColor(context, m1))
 
-        // 3열 이상이면 칸이 좁아 글자 크기를 줄여 잘림 방지
-        val nameSp = if (compact) 11f else 13f
+        // 차트 레이아웃에서는 종목명을 키우고, 텍스트 레이아웃 3열 이상이면 줄여 잘림 방지
+        val nameSp = if (large) 15f else if (compact) 11f else 13f
         val priceSp = if (compact) 14f else 17f
         val dropSp = if (compact) 18f else 24f
         views.setTextViewTextSize(NAME_IDS[slot], TypedValue.COMPLEX_UNIT_SP, nameSp)
