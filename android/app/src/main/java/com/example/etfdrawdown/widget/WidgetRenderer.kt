@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import com.example.etfdrawdown.R
 import com.example.etfdrawdown.data.IndexResult
 import com.example.etfdrawdown.data.MarketHours
@@ -26,8 +27,8 @@ object WidgetRenderer {
     /** 개장 중인데 이 시간 이상 갱신이 없으면 헤더에 '지연' 경고를 띄운다. */
     private const val STALE_THRESHOLD_MS = 2 * 60 * 60 * 1000L
 
-    /** 위젯 높이(dp)가 이 값 이상이면 차트가 있는 큰 레이아웃 사용(약 3셀부터). */
-    private const val LARGE_MIN_HEIGHT_DP = 180
+    /** 위젯 높이(dp)가 이 값 이상이면 차트가 있는 큰 레이아웃 사용(3행이라 약 4셀부터). */
+    private const val LARGE_MIN_HEIGHT_DP = 250
 
     /** 큰 레이아웃에서 텍스트 열·패딩이 차지하는 가로폭(dp) 근사치 — 차트 비트맵 크기 계산용. */
     private const val CHART_TEXT_COLUMN_DP = 150
@@ -101,10 +102,13 @@ object WidgetRenderer {
             R.id.ndx_name, R.id.ndx_price, R.id.ndx_1m)
         bindIndex(context, views, snapshot.results.getOrNull(1),
             R.id.spx_name, R.id.spx_price, R.id.spx_1m)
+        bindIndex(context, views, snapshot.results.getOrNull(2),
+            R.id.div_name, R.id.div_price, R.id.div_1m)
 
         if (large) {
             bindChart(context, views, snapshot.results.getOrNull(0), R.id.ndx_chart, widthDp, heightDp)
             bindChart(context, views, snapshot.results.getOrNull(1), R.id.spx_chart, widthDp, heightDp)
+            bindChart(context, views, snapshot.results.getOrNull(2), R.id.div_chart, widthDp, heightDp)
         }
         return views
     }
@@ -120,18 +124,23 @@ object WidgetRenderer {
     ) {
         if (index == null || index.closes1m.size < 2) return
         val density = context.resources.displayMetrics.density
-        // 차트 영역 근사: 가로 = 전체 - 텍스트 열, 세로 = (전체 - 헤더/여백) / 지수 2개
+        // 차트 영역 근사: 가로 = 전체 - 텍스트 열, 세로 = (전체 - 헤더/여백) / 지수 3개
         val chartWDp = (widthDp - CHART_TEXT_COLUMN_DP).coerceAtLeast(80)
-        val chartHDp = ((heightDp - 60) / 2).coerceAtLeast(50)
+        val chartHDp = ((heightDp - 60) / 3).coerceAtLeast(50)
         val wPx = (chartWDp * density).toInt().coerceAtMost(1200)
         val hPx = (chartHDp * density).toInt().coerceAtMost(600)
+        // 낙폭 구간 색을 텍스트와 동일하게 라인·면에 적용
+        val lineColor = dropColor(context, index.periods["1m"]?.dropRatio ?: 0.0)
+        val bg = ContextCompat.getColor(context, R.color.widget_bg)
+        val fillColor = ColorUtils.blendARGB(bg, lineColor, 0.35f) // 불투명(배경과 혼합한 옅은 톤)
         val bmp = ChartRenderer.render(
             widthPx = wPx,
             heightPx = hPx,
             density = density,
             values = index.closes1m,
             periodHigh = index.periods["1m"]?.periodHigh ?: index.closes1m.max(),
-            lineColor = ContextCompat.getColor(context, R.color.chart_line),
+            lineColor = lineColor,
+            fillColor = fillColor,
             highLineColor = ContextCompat.getColor(context, R.color.text_muted),
         )
         views.setImageViewBitmap(chartId, bmp)
@@ -195,11 +204,15 @@ object WidgetRenderer {
 
     private fun formatDrop(d: Double): String = String.format(Locale.US, "%.2f%%", d)
 
-    /** 낙폭 크기에 따른 텍스트 색상(정보 강조용, 매수 신호 아님). */
+    /**
+     * 낙폭 구간 색상(정보 강조용, 매수 신호 아님). 텍스트·차트 라인·면에 공통 적용.
+     * 낙폭은 항상 0% 이하이므로 0% = 고점 갱신 중(파랑).
+     */
     private fun dropColor(context: Context, d: Double): Int = when {
         d <= -10.0 -> ContextCompat.getColor(context, R.color.accent_red)
         d <= -5.0 -> ContextCompat.getColor(context, R.color.accent_orange)
-        else -> ContextCompat.getColor(context, R.color.text_primary)
+        d < 0.0 -> ContextCompat.getColor(context, R.color.drop_yellow)
+        else -> ContextCompat.getColor(context, R.color.chart_line)
     }
 
     private fun refreshIntent(context: Context): PendingIntent {

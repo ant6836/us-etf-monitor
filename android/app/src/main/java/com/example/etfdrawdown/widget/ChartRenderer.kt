@@ -15,6 +15,7 @@ object ChartRenderer {
     /**
      * @param values 종가 시계열(시간 오름차순, 마지막 점 = 현재가)
      * @param periodHigh 기간 고점(점선 기준선으로 표시)
+     * @param fillColor 라인 아래 영역 채움색(불투명 — 호출부에서 배경과 혼합해 전달)
      */
     fun render(
         widthPx: Int,
@@ -23,6 +24,7 @@ object ChartRenderer {
         values: List<Double>,
         periodHigh: Double,
         lineColor: Int,
+        fillColor: Int,
         highLineColor: Int,
     ): Bitmap {
         val w = widthPx.coerceAtLeast(1)
@@ -45,7 +47,26 @@ object ChartRenderer {
         fun x(i: Int): Float = pad + plotW * i / (values.size - 1).toFloat()
         fun y(v: Double): Float = pad + plotH * (1f - ((v - min) / (max - min)).toFloat())
 
-        // 기간 고점 점선
+        // 종가 라인 경로
+        val path = Path()
+        values.forEachIndexed { i, v ->
+            if (i == 0) path.moveTo(x(0), y(v)) else path.lineTo(x(i), y(v))
+        }
+
+        // 라인 아래 영역 채움(라인보다 먼저 그려서 라인이 위에 보이게)
+        val bottom = pad + plotH
+        val fillPath = Path(path).apply {
+            lineTo(x(values.size - 1), bottom)
+            lineTo(x(0), bottom)
+            close()
+        }
+        val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = fillColor
+            style = Paint.Style.FILL
+        }
+        canvas.drawPath(fillPath, fillPaint)
+
+        // 기간 고점 점선(채움 위에 보이도록 라인보다 먼저, 채움 다음에)
         val highPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = highLineColor
             style = Paint.Style.STROKE
@@ -53,12 +74,6 @@ object ChartRenderer {
             pathEffect = DashPathEffect(floatArrayOf(4f * density, 4f * density), 0f)
         }
         canvas.drawLine(pad, y(periodHigh), pad + plotW, y(periodHigh), highPaint)
-
-        // 종가 라인
-        val path = Path()
-        values.forEachIndexed { i, v ->
-            if (i == 0) path.moveTo(x(0), y(v)) else path.lineTo(x(i), y(v))
-        }
         val linePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = lineColor
             style = Paint.Style.STROKE

@@ -10,6 +10,7 @@ object Repository {
     val INDICES: List<Pair<String, String>> = listOf(
         "^NDX" to "Nasdaq 100",
         "^GSPC" to "S&P 500",
+        "^DJUSDIV" to "DJ Dividend 100", // Dow Jones U.S. Dividend 100 (SCHD 추종 지수)
     )
 
     /** 수집 결과: 성공한 지수 목록 + 실패한 심볼 목록. */
