@@ -9,7 +9,8 @@
 ## 무엇을 보여주나
 
 - **나스닥 100 / S&P 500** 각각에 대해
-- **최근 1개월 고점 대비 현재 낙폭(%)** 을 크게 표시 (3개월·1년 낙폭은 작게 병기)
+- **최근 1개월 고점 대비 현재 낙폭(%)** 을 크게 표시
+- 위젯을 세로로 늘리면(3셀 이상) **1개월 종가 라인 차트** 표시 (고점 점선 + 현재가 점)
 - 낙폭 크기에 따라 색상 강조 (−5% 미만 기본 / −5%~ 주황 / −10%~ 적색) — *정보 강조용이며 매수 신호 아님*
 
 기준이 "기간 내 고점"이라 현재가는 항상 고점 이하이므로, 결과는 **0%(고점 갱신 중) 또는 음수(하락)** 만 나옵니다.
@@ -22,33 +23,35 @@
 
 ```
 [Yahoo Finance Chart API]
-   │  앱이 WorkManager로 주기 호출 (range=1y&interval=1d)
+   │  앱이 WorkManager로 주기 호출 (range=3mo&interval=1d)
    ▼
 [Android App]
-   ├─ JSON 파싱(현재가 + 일별 고가)
-   ├─ 1M/3M/1Y 구간별 고점 추출 + 낙폭 계산
+   ├─ JSON 파싱(현재가 + 일별 고가·종가)
+   ├─ 1개월 고점 추출 + 낙폭 계산, 1개월 종가 시계열(차트용)
    └─ SharedPreferences 캐싱
    ▼
-[홈 화면 위젯 (RemoteViews)]
+[홈 화면 위젯 (RemoteViews, 크기에 따라 텍스트/차트 레이아웃)]
 ```
 
 - 호스팅·상시 구동 서버·비용 불필요 (개인 1인 사용 전제)
-- 호출량: 지수당 1년치 1회 = 갱신당 2회. 30분 주기 자동 갱신 + 위젯 새로고침 버튼
+- 호출량: 지수당 3개월치 1회 = 갱신당 2회. 30분 주기 자동 갱신 + 위젯 새로고침 버튼
+- **폐장 중에는 호출 생략**: 마지막 폐장 이후 데이터를 이미 갖고 있으면 네트워크 호출을 건너뜀(배터리/API 절약). 수동 새로고침은 항상 실제 갱신
+- 휴장일은 연도 하드코딩 없이 규칙으로 계산(MLK·성금요일·추수감사절 등 + 조기 폐장 13:00 반영)
+- 위젯 헤더에 상태 표시: 갱신 시각 · 개장/폐장 · 갱신 중/갱신 실패/지연(개장 중 2시간 초과) 경고
 
 ### 디렉토리
 
 ```
 us_etf_monitor/
 ├─ android/        # 실제 빌드/배포 대상 (Kotlin)
-│  └─ app/src/main/java/com/example/etfdrawdown/
-│     ├─ data/     # YahooClient, Drawdown, MarketHours, Repository, PrefsStore
-│     ├─ widget/   # EtfWidgetProvider, WidgetRenderer
-│     └─ work/     # UpdateWorker (WorkManager)
-├─ backend/        # (참고용 보존) FastAPI 구현 — 현 구조에서는 미사용
+│  └─ app/src/
+│     ├─ main/java/com/example/etfdrawdown/
+│     │  ├─ data/     # YahooClient, Drawdown, MarketHours, Repository, PrefsStore
+│     │  ├─ widget/   # EtfWidgetProvider, WidgetRenderer, ChartRenderer
+│     │  └─ work/     # UpdateWorker (WorkManager)
+│     └─ test/        # MarketHours 단위 테스트(서머타임·휴장일·조기폐장)
 └─ 금융지수_낙폭_위젯_개발명세서_v3_personal.md   # 개발 명세서
 ```
-
-> `backend/`는 초기에 검토했던 서버 기반(2-Tier) 구현으로, 낙폭 계산 로직의 검증된 파이썬 레퍼런스 및 단위 테스트(20개)를 담고 있습니다. 현재 안드로이드 앱은 이걸 사용하지 않습니다.
 
 ---
 

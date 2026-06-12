@@ -1,5 +1,14 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
+}
+
+// 서명 정보는 gitignore된 keystore.properties에서 읽는다(저장소에 비밀번호 노출 금지)
+val keystoreProps = Properties().apply {
+    val f = rootProject.file("keystore.properties")
+    if (f.exists()) load(FileInputStream(f))
 }
 
 android {
@@ -14,10 +23,20 @@ android {
         applicationId = "com.example.etfdrawdown"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
+    }
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    signingConfigs {
+        create("release") {
+            val storeF = keystoreProps.getProperty("storeFile")
+            if (storeF != null) {
+                storeFile = rootProject.file(storeF)
+                storePassword = keystoreProps.getProperty("storePassword")
+                keyAlias = keystoreProps.getProperty("keyAlias")
+                keyPassword = keystoreProps.getProperty("keyPassword")
+            }
+        }
     }
 
     buildTypes {
@@ -25,6 +44,7 @@ android {
             optimization {
                 enable = false
             }
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
@@ -41,6 +61,4 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.work.runtime.ktx)
     testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(libs.androidx.junit)
 }

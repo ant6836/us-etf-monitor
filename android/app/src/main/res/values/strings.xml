@@ -2,10 +2,11 @@
     <string name="app_name">ETF Drawdown</string>
 
     <!-- 위젯 -->
-    <string name="widget_title">고점 대비 낙폭</string>
+    <string name="widget_title">1M 고점 대비 낙폭</string>
     <string name="widget_loading">불러오는 중…</string>
     <string name="widget_refresh">새로고침</string>
-    <string name="widget_label">고점 대비 낙폭</string>
+    <string name="widget_chart_desc">1개월 지수 추이 차트</string>
+    <string name="widget_label">1M 고점 대비 낙폭</string>
 
     <!-- 메인 화면 -->
     <string name="main_heading">고점 대비 낙폭 위젯</string>

@@ -8,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.work.WorkManager
 import com.example.etfdrawdown.data.PrefsStore
 import com.example.etfdrawdown.work.UpdateWorker
 import java.text.SimpleDateFormat
@@ -36,6 +37,13 @@ class MainActivity : AppCompatActivity() {
             UpdateWorker.enqueueOnce(this)
             Toast.makeText(this, "갱신 요청됨", Toast.LENGTH_SHORT).show()
         }
+
+        // 수동 갱신 작업이 끝나면 화면을 자동으로 다시 그린다(나갔다 들어올 필요 없음)
+        WorkManager.getInstance(this)
+            .getWorkInfosForUniqueWorkLiveData(UpdateWorker.ONE_TIME)
+            .observe(this) { infos ->
+                if (infos.any { it.state.isFinished }) renderLastValues()
+            }
     }
 
     override fun onResume() {
@@ -53,13 +61,11 @@ class MainActivity : AppCompatActivity() {
         val sb = StringBuilder()
         for (r in snapshot.results) {
             val m1 = r.periods["1m"]?.dropRatio ?: 0.0
-            val m3 = r.periods["3m"]?.dropRatio ?: 0.0
-            val y1 = r.periods["1y"]?.dropRatio ?: 0.0
             sb.append(r.name)
                 .append("  ")
                 .append(String.format(Locale.US, "%,.0f", r.currentPrice))
                 .append("\n")
-                .append(String.format(Locale.US, "  1M %.2f%%  ·  3M %.2f%%  ·  1Y %.2f%%", m1, m3, y1))
+                .append(String.format(Locale.US, "  1개월 고점 대비 %.2f%%", m1))
                 .append("\n\n")
         }
         if (snapshot.updatedAtMs > 0) {

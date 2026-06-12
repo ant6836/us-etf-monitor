@@ -8,7 +8,8 @@ import java.net.URLEncoder
 /**
  * 야후 파이낸스 차트 API 직접 호출(서버리스 구조).
  *
- * 엔드포인트: GET https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?range=1y&interval=1d
+ * 엔드포인트: GET https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?range=3mo&interval=1d
+ * (1개월 낙폭·차트만 쓰므로 3개월치면 충분 — 여유분 포함)
  * 인증 없이 User-Agent 헤더만으로 동작함을 검증함(2026-06-08).
  */
 object YahooClient {
@@ -17,16 +18,19 @@ object YahooClient {
     private const val USER_AGENT = "Mozilla/5.0 (Linux; Android 14)"
     private const val TIMEOUT_MS = 10_000
 
-    /** 한 심볼의 원시 시계열. series = (epoch초, 일별 고가) 목록. */
-    data class Raw(val currentPrice: Double, val series: List<Pair<Long, Double>>)
+    /** 일봉 하나(epoch초, 고가, 종가). */
+    data class Bar(val ts: Long, val high: Double, val close: Double)
+
+    /** 한 심볼의 원시 시계열. */
+    data class Raw(val currentPrice: Double, val series: List<Bar>)
 
     /**
-     * 1년치 일봉을 받아 현재가와 (타임스탬프, 고가) 시계열을 반환한다.
+     * 3개월치 일봉을 받아 현재가와 시계열(고가·종가)을 반환한다.
      * @throws Exception 네트워크/파싱 실패 시(호출부에서 처리)
      */
     fun fetchChart(symbol: String): Raw {
         val encoded = URLEncoder.encode(symbol, "UTF-8") // ^NDX -> %5ENDX
-        val url = URL("$BASE$encoded?range=1y&interval=1d")
+        val url = URL("$BASE$encoded?range=3mo&interval=1d")
         val conn = (url.openConnection() as HttpURLConnection).apply {
             requestMethod = "GET"
             setRequestProperty("User-Agent", USER_AGENT)
@@ -53,16 +57,17 @@ object YahooClient {
         val current = meta.getDouble("regularMarketPrice")
 
         val timestamps = result.getJSONArray("timestamp")
-        val highs = result.getJSONObject("indicators")
+        val quote = result.getJSONObject("indicators")
             .getJSONArray("quote")
             .getJSONObject(0)
-            .getJSONArray("high")
+        val highs = quote.getJSONArray("high")
+        val closes = quote.getJSONArray("close")
 
-        val series = ArrayList<Pair<Long, Double>>(highs.length())
-        val n = minOf(timestamps.length(), highs.length())
+        val series = ArrayList<Bar>(highs.length())
+        val n = minOf(timestamps.length(), highs.length(), closes.length())
         for (i in 0 until n) {
-            if (highs.isNull(i)) continue // 거래 없는 날은 null
-            series.add(timestamps.getLong(i) to highs.getDouble(i))
+            if (highs.isNull(i) || closes.isNull(i)) continue // 거래 없는 날은 null
+            series.add(Bar(timestamps.getLong(i), highs.getDouble(i), closes.getDouble(i)))
         }
         if (series.isEmpty()) throw RuntimeException("시계열 데이터 없음")
         return Raw(current, series)

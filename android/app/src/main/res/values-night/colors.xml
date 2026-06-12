@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 위젯 색상(다크 모드) — 기존 다크 팔레트 유지 -->
+    <color name="widget_bg">#11151F</color>
+    <color name="text_primary">#E2E8F0</color>
+    <color name="text_muted">#94A3B8</color>
+    <color name="accent_orange">#F59E0B</color>
+    <color name="accent_red">#EF4444</color>
+    <color name="chart_line">#60A5FA</color>
+</resources>

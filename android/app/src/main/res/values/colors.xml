@@ -3,10 +3,11 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <!-- 위젯 색상 -->
-    <color name="widget_bg">#11151F</color>
-    <color name="text_primary">#E2E8F0</color>
-    <color name="text_muted">#94A3B8</color>
-    <color name="accent_orange">#F59E0B</color>
-    <color name="accent_red">#EF4444</color>
+    <!-- 위젯 색상(라이트 모드). 다크 모드는 values-night/colors.xml -->
+    <color name="widget_bg">#F8FAFC</color>
+    <color name="text_primary">#0F172A</color>
+    <color name="text_muted">#64748B</color>
+    <color name="accent_orange">#D97706</color>
+    <color name="accent_red">#DC2626</color>
+    <color name="chart_line">#2563EB</color>
 </resources>

@@ -10,11 +10,9 @@ import kotlin.math.roundToInt
  */
 object Drawdown {
 
-    /** 기준 기간별 일수(달력 기준). 표시 순서를 유지하기 위해 LinkedHashMap 사용. */
+    /** 기준 기간별 일수(달력 기준). 현재는 1개월만 사용. */
     val PERIOD_DAYS: Map<String, Long> = linkedMapOf(
         "1m" to 30L,
-        "3m" to 90L,
-        "1y" to 365L,
     )
 
     /**
