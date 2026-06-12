@@ -52,15 +52,14 @@
 
 ```
 us_etf_monitor/
-├─ android/        # 실제 빌드/배포 대상 (Kotlin)
-│  └─ app/src/
-│     ├─ main/java/com/example/etfdrawdown/
-│     │  ├─ MainActivity  # 종목 검색·추가·삭제, 최근값, 수동 갱신
-│     │  ├─ data/     # YahooClient(차트·검색), Drawdown, MarketHours, Repository, PrefsStore
-│     │  ├─ widget/   # EtfWidgetProvider, WidgetRenderer(4슬롯), ChartRenderer
-│     │  └─ work/     # UpdateWorker (WorkManager)
-│     └─ test/        # MarketHours 단위 테스트(서머타임·휴장일·조기폐장)
-└─ 금융지수_낙폭_위젯_개발명세서_v3_personal.md   # 개발 명세서
+└─ android/        # 실제 빌드/배포 대상 (Kotlin)
+   └─ app/src/
+      ├─ main/java/com/example/etfdrawdown/
+      │  ├─ MainActivity  # 종목 검색·추가·삭제, 최근값, 수동 갱신
+      │  ├─ data/     # YahooClient(차트·검색), Drawdown, MarketHours, Repository, PrefsStore
+      │  ├─ widget/   # EtfWidgetProvider, WidgetRenderer(4슬롯), ChartRenderer
+      │  └─ work/     # UpdateWorker (WorkManager)
+      └─ test/        # MarketHours 단위 테스트(서머타임·휴장일·조기폐장)
 ```
 
 ---
