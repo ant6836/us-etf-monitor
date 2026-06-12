@@ -77,7 +77,7 @@ class MainActivity : AppCompatActivity() {
         container.removeAllViews()
         val list = PrefsStore.loadWatchlist(this)
         for ((symbol, name) in list) {
-            container.addView(makeRow("$name  ($symbol)", getString(R.string.main_remove)) {
+            container.addView(makeRow(name, symbol, getString(R.string.main_remove)) {
                 removeSymbol(symbol)
             })
         }
@@ -116,7 +116,7 @@ class MainActivity : AppCompatActivity() {
                 items.isEmpty() -> resultsBox.addView(makeInfoText("검색 결과 없음"))
                 else -> for (item in items) {
                     resultsBox.addView(
-                        makeRow("${item.name}  (${item.symbol} · ${item.type})", getString(R.string.main_add)) {
+                        makeRow(item.name, "${item.symbol} · ${item.type}", getString(R.string.main_add)) {
                             addSymbol(item.symbol, item.name)
                         },
                     )
@@ -169,26 +169,42 @@ class MainActivity : AppCompatActivity() {
 
     // ---- 공용 뷰 빌더 ----
 
-    /** "텍스트 + 우측 버튼" 한 줄을 만든다(추적 목록·검색 결과 공용). */
-    private fun makeRow(label: String, buttonText: String, onClick: () -> Unit): LinearLayout {
+    /** "2줄 텍스트(이름/부가정보) + 우측 주황 액션" 한 줄을 만든다(추적 목록·검색 결과 공용). */
+    private fun makeRow(title: String, subtitle: String, actionText: String, onClick: () -> Unit): LinearLayout {
+        val dp = resources.displayMetrics.density
         val row = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = android.view.Gravity.CENTER_VERTICAL
+            setPadding(0, (10 * dp).toInt(), 0, (10 * dp).toInt())
         }
+        val textCol = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        textCol.addView(
+            TextView(this).apply {
+                text = title
+                textSize = 15f
+                maxLines = 1
+                ellipsize = android.text.TextUtils.TruncateAt.END
+                setTypeface(typeface, android.graphics.Typeface.BOLD)
+                setTextColor(androidx.core.content.ContextCompat.getColor(context, R.color.app_text1))
+            },
+        )
+        textCol.addView(
+            TextView(this).apply {
+                text = subtitle
+                textSize = 12f
+                maxLines = 1
+                ellipsize = android.text.TextUtils.TruncateAt.END
+                setTextColor(androidx.core.content.ContextCompat.getColor(context, R.color.app_text2))
+            },
+        )
+        row.addView(textCol, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
         row.addView(
             TextView(this).apply {
-                text = label
+                text = actionText
                 textSize = 14f
-                maxLines = 2
-            },
-            LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f),
-        )
-        row.addView(
-            Button(this).apply {
-                text = buttonText
-                textSize = 12f
-                minWidth = 0
-                minimumWidth = 0
+                setTypeface(typeface, android.graphics.Typeface.BOLD)
+                setTextColor(androidx.core.content.ContextCompat.getColor(context, R.color.accent))
+                setPadding((12 * dp).toInt(), (6 * dp).toInt(), (4 * dp).toInt(), (6 * dp).toInt())
                 setOnClickListener { onClick() }
             },
             LinearLayout.LayoutParams(
@@ -202,7 +218,8 @@ class MainActivity : AppCompatActivity() {
     private fun makeInfoText(message: String): TextView = TextView(this).apply {
         text = message
         textSize = 13f
-        setPadding(0, 8, 0, 8)
+        setTextColor(androidx.core.content.ContextCompat.getColor(context, R.color.app_text2))
+        setPadding(0, 16, 0, 8)
     }
 
     // ---- 최근 캐시값 ----

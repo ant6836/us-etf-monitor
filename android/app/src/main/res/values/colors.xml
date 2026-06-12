@@ -11,4 +11,13 @@
     <color name="accent_red">#DC2626</color>
     <color name="chart_line">#2563EB</color>
     <color name="drop_yellow">#CA8A04</color>
+
+    <!-- 앱 화면 팔레트(라이트). 다크는 values-night/colors.xml -->
+    <color name="app_bg">#FFFFFF</color>
+    <color name="app_surface">#F4F6F8</color>
+    <color name="app_outline">#E2E8F0</color>
+    <color name="app_text1">#111827</color>
+    <color name="app_text2">#6B7280</color>
+    <color name="accent">#F97316</color>
+    <color name="on_accent">#FFFFFF</color>
 </resources>

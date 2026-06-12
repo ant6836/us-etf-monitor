@@ -1,8 +1,11 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+    <!-- Base application theme. 라이트=흰 배경, 다크=검정 배경(values-night), 포인트 주황 -->
     <style name="Base.Theme.ETFDrawdown" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="colorPrimary">@color/accent</item>
+        <item name="colorOnPrimary">@color/on_accent</item>
+        <item name="android:windowBackground">@color/app_bg</item>
+        <item name="android:textColorPrimary">@color/app_text1</item>
+        <item name="android:textColorSecondary">@color/app_text2</item>
     </style>
 
     <style name="Theme.ETFDrawdown" parent="Base.Theme.ETFDrawdown" />

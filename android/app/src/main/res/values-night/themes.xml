@@ -1,7 +1,10 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+    <!-- 다크 테마 — 색상은 values-night/colors.xml의 동일 키가 적용된다 -->
     <style name="Base.Theme.ETFDrawdown" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+        <item name="colorPrimary">@color/accent</item>
+        <item name="colorOnPrimary">@color/on_accent</item>
+        <item name="android:windowBackground">@color/app_bg</item>
+        <item name="android:textColorPrimary">@color/app_text1</item>
+        <item name="android:textColorSecondary">@color/app_text2</item>
     </style>
 </resources>
