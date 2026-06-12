@@ -10,7 +10,7 @@ object Repository {
     val INDICES: List<Pair<String, String>> = listOf(
         "^NDX" to "Nasdaq 100",
         "^GSPC" to "S&P 500",
-        "^DJUSDIV" to "DJ Dividend 100", // Dow Jones U.S. Dividend 100 (SCHD 추종 지수)
+        // ^DJUSDIV(DJ 배당 100)는 야후가 과거 일봉을 제공하지 않아 제외(2026-06-12 확인)
     )
 
     /** 수집 결과: 성공한 지수 목록 + 실패한 심볼 목록. */

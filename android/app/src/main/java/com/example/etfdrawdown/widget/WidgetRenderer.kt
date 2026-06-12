@@ -27,8 +27,8 @@ object WidgetRenderer {
     /** 개장 중인데 이 시간 이상 갱신이 없으면 헤더에 '지연' 경고를 띄운다. */
     private const val STALE_THRESHOLD_MS = 2 * 60 * 60 * 1000L
 
-    /** 위젯 높이(dp)가 이 값 이상이면 차트가 있는 큰 레이아웃 사용(3행이라 약 4셀부터). */
-    private const val LARGE_MIN_HEIGHT_DP = 250
+    /** 위젯 높이(dp)가 이 값 이상이면 차트가 있는 큰 레이아웃 사용(약 3셀부터). */
+    private const val LARGE_MIN_HEIGHT_DP = 180
 
     /** 큰 레이아웃에서 텍스트 열·패딩이 차지하는 가로폭(dp) 근사치 — 차트 비트맵 크기 계산용. */
     private const val CHART_TEXT_COLUMN_DP = 150
@@ -102,13 +102,10 @@ object WidgetRenderer {
             R.id.ndx_name, R.id.ndx_price, R.id.ndx_1m)
         bindIndex(context, views, snapshot.results.getOrNull(1),
             R.id.spx_name, R.id.spx_price, R.id.spx_1m)
-        bindIndex(context, views, snapshot.results.getOrNull(2),
-            R.id.div_name, R.id.div_price, R.id.div_1m)
 
         if (large) {
             bindChart(context, views, snapshot.results.getOrNull(0), R.id.ndx_chart, widthDp, heightDp)
             bindChart(context, views, snapshot.results.getOrNull(1), R.id.spx_chart, widthDp, heightDp)
-            bindChart(context, views, snapshot.results.getOrNull(2), R.id.div_chart, widthDp, heightDp)
         }
         return views
     }
@@ -124,9 +121,9 @@ object WidgetRenderer {
     ) {
         if (index == null || index.closes1m.size < 2) return
         val density = context.resources.displayMetrics.density
-        // 차트 영역 근사: 가로 = 전체 - 텍스트 열, 세로 = (전체 - 헤더/여백) / 지수 3개
+        // 차트 영역 근사: 가로 = 전체 - 텍스트 열, 세로 = (전체 - 헤더/여백) / 지수 2개
         val chartWDp = (widthDp - CHART_TEXT_COLUMN_DP).coerceAtLeast(80)
-        val chartHDp = ((heightDp - 60) / 3).coerceAtLeast(50)
+        val chartHDp = ((heightDp - 60) / 2).coerceAtLeast(50)
         val wPx = (chartWDp * density).toInt().coerceAtMost(1200)
         val hPx = (chartHDp * density).toInt().coerceAtMost(600)
         // 낙폭 구간 색을 텍스트와 동일하게 라인·면에 적용
